@@ -1,15 +1,11 @@
 use regex::Regex;
-use std::{fs, vec, collections::HashSet};
+use std::{fs, vec};
 
 
 
 fn main() {
     let input_res = fs::read_to_string("input.txt");
-    // let mut set_valid_part_num: HashSet<i32> = HashSet::new();
     let mut vec_valid_part_num: Vec<i32> = vec![];
-
-    let mut vec_invalid_part_num: Vec<i32> = vec![];
-
 
     match input_res {
         Err(_) => {
@@ -25,7 +21,7 @@ fn main() {
             // const SYMBOLS_LIST: &str = r"\[\]!@#$%^&*(),|\\+-/\?";
             const SYMBOLS_LIST: &str = r"^a-zA-Z0-9\.";
 
-            let re_digits = Regex::new(format!(r"(?<prevchar>[{SYMBOLS_LIST}]?)(?<number>\d+)(?<nextchar>[{SYMBOLS_LIST}]?)").as_str()).unwrap();
+            let re_digits = Regex::new(format!(r"(?<number>\d+)").as_str()).unwrap();
             // let re_digits = Regex::new(r"(?<number>\d+)").unwrap();
             let re_symbols = Regex::new(format!(r"(?<symbol>[{SYMBOLS_LIST}])").as_str()).unwrap();
 
@@ -40,30 +36,22 @@ fn main() {
                     // line info
                     print!("\tnumber: {} - start: {} end: {}", digit.as_str(), digit.start(), digit.end());
 
+                    let start_substr = if digit.start() > 0 { digit.start() - 1 } else { 0 };
+                    let end_substr = if digit.end() + 1 >= line.len() { line.len() } else { digit.end() + 1 };
 
                     // check current line
-                    if !capture.name("prevchar").unwrap().is_empty() || !capture.name("nextchar").unwrap().is_empty() {
-                        // if set_valid_part_num.contains(&digit.as_str().parse().unwrap()) {
-                        //     print!(" DUPLICATE FOUND!!!!!!");
-                        // }
-
+                    let number_padded = &line[start_substr..end_substr];
+                    if re_symbols.find(number_padded).is_some() {
                         print!(" - VALID\n");
                         vec_valid_part_num.push(digit.as_str().parse().unwrap());
                         continue;
                     }
-
-                    let start_substr = if digit.start() > 0 { digit.start() - 1 } else { 0 };
-                    let end_substr = if digit.end() + 1 >= line.len() { line.len() } else { digit.end() + 1 };
 
                     // check line before
                     if i > 0 {
                         let substr_prev_line = content_line_split[i-1];
 
                         if re_symbols.find(&substr_prev_line[start_substr..end_substr]).is_some() {
-                            // if set_valid_part_num.contains(&digit.as_str().parse().unwrap()) {
-                            //     print!(" DUPLICATE FOUND!!!!!!");
-                            // }
-
                             print!(" - VALID\n");
                             vec_valid_part_num.push(digit.as_str().parse().unwrap());
                             continue;
@@ -75,17 +63,11 @@ fn main() {
                         let substr_line_after = content_line_split[i+1];
 
                         if re_symbols.find(&substr_line_after[start_substr..end_substr]).is_some() {
-                            // if set_valid_part_num.contains(&digit.as_str().parse().unwrap()) {
-                            //     print!(" DUPLICATE FOUND!!!!!!");
-                            // }
-
                             print!(" - VALID\n");
                             vec_valid_part_num.push(digit.as_str().parse().unwrap());
                             continue;
                         }
                     }
-
-                    vec_invalid_part_num.push(digit.as_str().parse().unwrap());
 
                     println!("");
                 } // end number parsing
@@ -97,9 +79,6 @@ fn main() {
             vec_valid_part_num.iter().for_each(|val| total_sum += val);
 
             println!("TOTAL: {}", total_sum);
-
-            println!("List of parts not valid: {:?}", vec_invalid_part_num);
-            
 
         } // end ok(T) match
     } // end match
