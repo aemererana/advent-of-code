@@ -11,8 +11,21 @@ fn parse_card_line(digit_re: &Regex, capture: &Captures) -> Vec<i32> {
 
     let mut winning_combo: Vec<i32> = vec![];
     for captured_number in digit_re.captures_iter(capture.name("card_num").unwrap().as_str()) {
-        let i32_captured_number = captured_number.get(1).unwrap().as_str().parse::<i32>().unwrap();
-        if let Some(match_number) = win_numbers.iter().find(|&&x| i32_captured_number == x) {
+
+        let i32_captured_number = captured_number
+                                        .get(1)
+                                        .unwrap()
+                                        .as_str()
+                                        .parse::<i32>()
+                                        .unwrap();
+
+        if let Some(match_number) = 
+            win_numbers
+                .iter()
+                .find(|&&x| 
+                    i32_captured_number == x
+                ) 
+        {
             winning_combo.push(*match_number);
         }
     }
@@ -43,17 +56,25 @@ fn process_lines(content_in_lines_vec: &Vec<&str>) {
     let mut total_sum = 0;
     let mut cards_token: HashMap<usize, i32> = HashMap::new();
 
+    // init tokens
     for i in 0..content_in_lines_vec.len() {
         cards_token.insert(i, 1);
     }
 
-    // iterate line
+    // iterate lines
     for (i, line) in content_in_lines_vec.iter().enumerate() {
+
+        // check line is valid
         match re_line.captures(line) {
+            // error
             None => {
                 println!("There was an error parsing line {}", i);
             },
+
+            // line is valid
             Some(capture) => {
+
+                // get win combo
                 let winning_combo = parse_card_line(&re_digit, &capture);
 
                 // add tokens                
@@ -66,6 +87,7 @@ fn process_lines(content_in_lines_vec: &Vec<&str>) {
                     }
                 }
 
+                // count total
                 total_sum += winning_combo.iter().fold(0, |acc, _| {
                     if acc == 0 { 1 } else { acc + acc }
                 });
